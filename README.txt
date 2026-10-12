@@ -17,3 +17,12 @@ IMPORTANT:
 3. Drafts are stored locally in the browser on this device. Clearing site data, uninstalling/resetting the browser, or losing the device may delete drafts. Export backups regularly.
 4. Monthly progress currently totals the words in saved chapters; it does not yet distinguish words written during the current calendar month. Calendar, streaks, daily goals, cloud accounts, and syncing are future upgrades.
 5. The app does not send your writing to a server.
+
+
+VERSION 2 ADDITIONS
+- Daily word goal setting and words-written-today counter (counts positive increases in the editor's word count).
+- Writing calendar and consecutive-day streak display.
+- Solo writing sprint timer with pause/resume/reset and approximate words-added result.
+- Shared live group sprints are not included yet; those need an online real-time service and accounts.
+
+To update your published GitHub Pages app, upload/replace the files from this version in the same repository and commit the changes. The service-worker cache name is bumped so the browser can fetch the new app shell. Existing local IndexedDB data is kept, but export a backup before updating as a precaution.
