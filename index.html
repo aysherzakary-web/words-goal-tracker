@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#7650c8">
+  <title>Words Goal Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">✦</span><div><strong>Words Goal Tracker</strong><small>Your stories, one word at a time.</small></div></div>
+    <button id="themeToggle" class="icon-button" aria-label="Switch theme" title="Switch theme">☾</button>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="section-heading"><h2>My Library</h2><button id="addBookBtn" class="round-button" aria-label="Add a book">+</button></div>
+      <p class="muted tiny">Your writing collection</p>
+      <div id="bookList" class="book-list"></div>
+      <div class="sidebar-note">💜 Your drafts are saved on this device. Export backups regularly.</div>
+    </aside>
+
+    <section class="workspace">
+      <section class="welcome-card">
+        <div><p class="eyebrow">YOUR WRITING SPACE</p><h1 id="welcomeTitle">Every word counts.</h1><p id="welcomeSubtitle">Choose a book or create a new one to begin.</p></div>
+        <div class="welcome-art" aria-hidden="true">✍️</div>
+      </section>
+
+      <section class="stats-grid">
+        <article class="stat-card"><span class="stat-icon">📝</span><div><p>Total words</p><strong id="totalWords">0</strong></div></article>
+        <article class="stat-card"><span class="stat-icon">🎯</span><div><p>Monthly goal</p><strong id="monthlyGoalLabel">10,000</strong></div></article>
+        <article class="stat-card"><span class="stat-icon">📚</span><div><p>Books</p><strong id="bookCount">0</strong></div></article>
+      </section>
+
+      <section class="panel" id="bookPanel">
+        <div class="panel-title-row"><div><p class="eyebrow">CURRENT PROJECT</p><h2 id="currentBookTitle">No book selected</h2></div><button id="editBookBtn" class="secondary-button" disabled>Edit book</button></div>
+        <div class="goal-row"><div><span class="muted">Book word goal</span><strong id="bookGoalLabel">—</strong></div><div class="progress-track"><div id="bookProgressBar" class="progress-fill"></div></div><span id="bookProgressLabel" class="progress-label">0%</span></div>
+        <div class="editor-layout">
+          <div class="chapter-column">
+            <div class="section-heading"><h3>Chapters</h3><button id="addChapterBtn" class="secondary-button" disabled>+ Chapter</button></div>
+            <div id="chapterList" class="chapter-list"><p class="muted tiny">Create a book to add chapters.</p></div>
+          </div>
+          <div class="editor-column">
+            <div class="editor-heading"><input id="chapterTitle" class="chapter-title-input" placeholder="Chapter title" disabled><span class="live-count"><b id="liveWordCount">0</b> words</span></div>
+            <textarea id="chapterEditor" placeholder="Your story starts here..." disabled></textarea>
+            <div class="editor-footer"><span id="saveStatus" class="muted tiny">Nothing to save yet</span><button id="exportChapterBtn" class="secondary-button" disabled>Export chapter</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel bottom-panel">
+        <div class="panel-title-row"><div><p class="eyebrow">MONTHLY MOMENTUM</p><h2>Your progress</h2></div><label class="goal-input-label">Monthly goal <input id="monthlyGoalInput" type="number" min="1" value="10000"></label></div>
+        <div class="month-summary"><div><strong id="monthWords">0</strong><span>words written in your saved chapters</span></div><div class="progress-track"><div id="monthProgressBar" class="progress-fill"></div></div><span id="monthProgressLabel">0% of monthly goal</span></div>
+        <div class="backup-actions"><button id="exportBackupBtn" class="primary-button">⬇ Export backup</button><label class="secondary-button import-button">⬆ Import backup<input id="importBackupInput" type="file" accept="application/json" hidden></label><span class="muted tiny">Backup files help protect your work.</span></div>
+      </section>
+      <footer>Made for writers who keep showing up. <span>✦</span></footer>
+    </section>
+  </main>
+
+  <dialog id="bookDialog">
+    <form id="bookForm" method="dialog">
+      <div class="dialog-heading"><h2 id="bookDialogTitle">Create a book</h2><button type="button" class="icon-button" data-close="bookDialog">✕</button></div>
+      <label>Book title<input id="bookNameInput" required maxlength="100" placeholder="e.g. Claimed by Shadows"></label>
+      <label>Word goal<input id="bookGoalInput" type="number" min="1" value="100000" required></label>
+      <div class="dialog-actions"><button type="button" class="secondary-button" data-close="bookDialog">Cancel</button><button class="primary-button" type="submit">Save book</button></div>
+    </form>
+  </dialog>
+  <dialog id="chapterDialog">
+    <form id="chapterForm" method="dialog">
+      <div class="dialog-heading"><h2>Add a chapter</h2><button type="button" class="icon-button" data-close="chapterDialog">✕</button></div>
+      <label>Chapter title<input id="newChapterTitle" required maxlength="100" placeholder="e.g. Chapter One: The Deal"></label>
+      <div class="dialog-actions"><button type="button" class="secondary-button" data-close="chapterDialog">Cancel</button><button class="primary-button" type="submit">Create chapter</button></div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
