@@ -1,3 +1,6 @@
+const SUPABASE_URL = "https://xizbmuzcvhtvduuyiymn.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_93QlWcwewRXuv-yq190nwQ_4A26JLrT";
+let supabaseClient = null, supabaseLoadPromise = null, currentSession = null, groupRefreshBusy = false;
 const DB_NAME = "words-goal-tracker-db";
 const DB_VERSION = 1;
 let db, state = {books:[], monthlyGoal:10000, dailyGoal:500, dailyLog:{}, groups:[], theme:"light"}, selectedBookId = null, selectedChapterId = null, saveTimer, lastEditorWords=0, calendarDate=new Date(), sprintInterval=null, sprintRemaining=1500, sprintActive=false, sprintPaused=false, sprintStartedWords=0;
@@ -22,8 +25,8 @@ const words=b?bookWords(b):0,goal=b?Number(b.goal)||1:1,pct=Math.min(100,Math.ro
 function dateKey(date=new Date()){return date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");}
 function renderStats(){const total=state.books.reduce((s,b)=>s+bookWords(b),0),today=dateKey(),log=state.dailyLog||{},todayWords=Number(log[today]||0),goal=Number(state.monthlyGoal)||10000,dailyGoal=Number(state.dailyGoal)||500;$("totalWords").textContent=fmt(total);$("bookCount").textContent=state.books.length;$("monthlyGoalInput").value=goal;$("monthlyGoalLabel").textContent=fmt(goal);$("dailyGoalInput").value=dailyGoal;$("dailyGoalLabel").textContent=fmt(dailyGoal);$("todayWords").textContent=fmt(todayWords);const monthWords=Object.entries(log).filter(([d])=>d.startsWith(today.slice(0,7))).reduce((a,[,v])=>a+Number(v||0),0);$("monthWords").textContent=fmt(monthWords);const pct=Math.min(100,Math.round(monthWords/goal*100));$("monthProgressBar").style.width=pct+"%";$("monthProgressLabel").textContent=pct+"% of monthly goal";let streak=0,day=new Date();if(!log[today])day.setDate(day.getDate()-1);while(Number(log[dateKey(day)]||0)>0){streak++;day.setDate(day.getDate()-1);}$("streakDays").textContent=streak+(streak===1?" day":" days");}
 function renderCalendar(){const y=calendarDate.getFullYear(),m=calendarDate.getMonth();$("calendarMonthLabel").textContent=new Date(y,m,1).toLocaleDateString(undefined,{month:"long",year:"numeric"});const grid=$("calendarGrid");grid.innerHTML="";const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),today=dateKey();for(let i=0;i<first;i++){const e=document.createElement("div");e.className="calendar-day empty";grid.appendChild(e);}for(let d=1;d<=days;d++){const date=new Date(y,m,d),key=dateKey(date),el=document.createElement("div");el.className="calendar-day";if(Number((state.dailyLog||{})[key]||0)>0)el.classList.add("wrote");if(key===today)el.classList.add("today");if(date>new Date())el.classList.add("future");el.textContent=d;el.title=Number((state.dailyLog||{})[key]||0)?fmt(state.dailyLog[key])+" words recorded":"No words recorded";grid.appendChild(el);}}
-function saveCurrentEditor(){const c=selectedChapter();if(!c)return;c.title=$("chapterTitle").value.trim()||"Untitled chapter";c.content=$("chapterEditor").value;writeState().then(()=>{$("saveStatus").textContent="Saved on this device";renderBooks();renderStats();});}
-function scheduleSave(){const c=selectedChapter();if(!c)return;c.title=$("chapterTitle").value.trim()||"Untitled chapter";c.content=$("chapterEditor").value;const currentWords=countWords(c.content),delta=Math.max(0,currentWords-lastEditorWords);if(delta>0){const key=dateKey();state.dailyLog=state.dailyLog||{};state.dailyLog[key]=(Number(state.dailyLog[key])||0)+delta;}lastEditorWords=currentWords;$("liveWordCount").textContent=fmt(currentWords);$("saveStatus").textContent="Saving…";clearTimeout(saveTimer);saveTimer=setTimeout(()=>{writeState().then(()=>{$("saveStatus").textContent="Saved on this device";renderBooks();renderStats();renderCalendar();renderChapterListOnly();}).catch(()=>{$("saveStatus").textContent="Could not save";toast("Saving failed. Please export a backup.");});},250);}
+function saveCurrentEditor(){const c=selectedChapter();if(!c)return;c.title=$("chapterTitle").value.trim()||"Untitled chapter";c.content=$("chapterEditor").value;writeState().then(()=>{$("saveStatus").textContent="Saved on this device";renderBooks();renderStats();if(navigator.onLine)syncMyProgress(false);});}
+function scheduleSave(){const c=selectedChapter();if(!c)return;c.title=$("chapterTitle").value.trim()||"Untitled chapter";c.content=$("chapterEditor").value;const currentWords=countWords(c.content),delta=Math.max(0,currentWords-lastEditorWords);if(delta>0){const key=dateKey();state.dailyLog=state.dailyLog||{};state.dailyLog[key]=(Number(state.dailyLog[key])||0)+delta;}lastEditorWords=currentWords;$("liveWordCount").textContent=fmt(currentWords);$("saveStatus").textContent="Saving…";clearTimeout(saveTimer);saveTimer=setTimeout(()=>{writeState().then(()=>{$("saveStatus").textContent="Saved on this device";renderBooks();renderStats();renderCalendar();renderChapterListOnly();if(navigator.onLine)syncMyProgress(false);}).catch(()=>{$("saveStatus").textContent="Could not save";toast("Saving failed. Please export a backup.");});},250);}
 function renderChapterListOnly(){const b=selectedBook();if(!b)return;[...$("chapterList").children].forEach((el,i)=>{const c=b.chapters[i];if(c)el.querySelector("small").textContent=fmt(countWords(c.content||""))+" words";});}
 function download(filename,content,type="application/json"){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $("addBookBtn").onclick=()=>{$("bookDialogTitle").textContent="Create a book";$("bookNameInput").value="";$("bookGoalInput").value=100000;$("bookDialog").showModal();};
@@ -45,8 +48,90 @@ $("sprintPauseBtn").onclick=()=>{sprintPaused=!sprintPaused;$("sprintPauseBtn").
 // Separate screens keep the mobile app uncluttered.
 function showPage(page){document.querySelectorAll(".page-section").forEach(el=>{el.hidden=el.dataset.page!==page;});document.querySelectorAll(".nav-tab").forEach(el=>el.classList.toggle("active",el.dataset.page===page));window.scrollTo({top:0,behavior:"smooth"});if(page==="groups")renderGroups();}
 document.querySelectorAll(".nav-tab").forEach(btn=>btn.addEventListener("click",()=>showPage(btn.dataset.page)));
-function renderGroups(){const wrap=$("groupsList");if(!state.groups||!state.groups.length){wrap.innerHTML='<div class="empty-groups"><span>👥</span><strong>Your writing circle starts here.</strong><p>Create a group to prepare its invite and member progress space.</p></div>';return;}wrap.innerHTML="";state.groups.forEach(g=>{const card=document.createElement("article");card.className="group-card";const heading=document.createElement("div");heading.className="group-card-head";const title=document.createElement("div");title.innerHTML='<p class="eyebrow">YOUR GROUP</p><h3></h3><small>Created on this device · Live sharing not connected yet</small>';title.querySelector("h3").textContent=g.name;const code=document.createElement("span");code.className="group-code";code.textContent=g.code;heading.append(title,code);const info=document.createElement("p");info.className="muted tiny";info.textContent="Invite code: "+g.code+". Members and progress will appear here once online group sync is connected.";const actions=document.createElement("div");actions.className="group-actions";const share=document.createElement("button");share.className="primary-button";share.textContent="Share invite";share.onclick=async()=>{const invite=location.origin+location.pathname+"?join="+encodeURIComponent(g.code);try{if(navigator.share){await navigator.share({title:"Join "+g.name,text:"Join my writing sprint group in Words Goal Tracker. Group code: "+g.code+" (live joining is not enabled yet)",url:invite});}else if(navigator.clipboard){await navigator.clipboard.writeText(invite);toast("Invite link copied. Live joining is not enabled yet.");}else{prompt("Copy this invite link",invite);}}catch(e){}};const remove=document.createElement("button");remove.className="secondary-button";remove.textContent="Delete group";remove.onclick=()=>{if(confirm("Delete this group from this device?")){state.groups=state.groups.filter(x=>x.id!==g.id);writeState().then(renderGroups);}};actions.append(share,remove);card.append(heading,info,actions);wrap.appendChild(card);});}
-$("createGroupBtn").onclick=()=>{const name=$("groupNameInput").value.trim();if(!name){toast("Give your group a name first.");return;}state.groups=state.groups||[];const code=Math.random().toString(36).slice(2,8).toUpperCase();state.groups.push({id:uid(),name,code,createdAt:new Date().toISOString()});writeState().then(()=>{$("groupNameInput").value="";renderGroups();toast("Group space created on this device 💜");});};
+function ensureSupabase(){
+  if(window.supabase?.createClient){
+    if(!supabaseClient) supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    return Promise.resolve(supabaseClient);
+  }
+  if(supabaseLoadPromise) return supabaseLoadPromise;
+  supabaseLoadPromise=new Promise((resolve,reject)=>{
+    if(!navigator.onLine){reject(new Error("Connect to the internet to use group features."));return;}
+    const script=document.createElement("script");
+    script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js";
+    script.async=true;
+    script.onload=()=>{if(!window.supabase?.createClient){reject(new Error("Could not load the group connection library."));return;}supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});resolve(supabaseClient);};
+    script.onerror=()=>reject(new Error("Could not load group tools. Connect to the internet and try again."));
+    document.head.appendChild(script);
+  });
+  return supabaseLoadPromise;
+}
+function setAuthStatus(message,isError=false){const el=$("authStatus");if(el){el.textContent=message;el.classList.toggle("error",isError);}}
+function updateAuthUI(){
+  const signed=!!currentSession;
+  $("signUpBtn").hidden=signed;$("signInBtn").hidden=signed;$("signOutBtn").hidden=!signed;
+  $("authEmail").disabled=signed;$("authPassword").disabled=signed;$("authDisplayName").disabled=signed;
+  setAuthStatus(signed?`Signed in as ${currentSession.user.email}. Group features are available online.`:(navigator.onLine?"Sign in or create an account to use sprint groups.":"You're offline. Personal writing and solo sprint remain available; groups need internet."));
+}
+async function initGroupAuth(){
+  updateAuthUI();
+  if(!navigator.onLine)return;
+  try{const client=await ensureSupabase();const {data}=await client.auth.getSession();currentSession=data.session;updateAuthUI();client.auth.onAuthStateChange((_event,session)=>{currentSession=session;updateAuthUI();if(session){loadRemoteGroups();processInviteFromURL();}else{renderGroups();}});if(currentSession){await loadRemoteGroups();await processInviteFromURL();}}
+  catch(e){setAuthStatus(e.message||"Group service is unavailable. Personal writing still works offline.",true);}
+}
+async function loadRemoteGroups(){
+  const wrap=$("groupsList");
+  if(groupRefreshBusy)return;groupRefreshBusy=true;
+  try{
+    if(!currentSession){renderGroups();return;}
+    const client=await ensureSupabase();const {data,error}=await client.rpc("wgt_my_groups");if(error)throw error;
+    const groups=(data||[]).map(g=>({id:g.group_id,name:g.group_name,code:g.invite_code,joinedAt:g.joined_at,myWords:g.my_words}));
+    state.remoteGroups=groups;renderGroups();await syncMyProgress(false);
+  }catch(e){if(wrap)wrap.innerHTML='<div class="empty-groups"><span>⚠️</span><strong>Could not load groups.</strong><p></p></div>';if(wrap?.querySelector('p'))wrap.querySelector('p').textContent=e.message||"Please try again when online.";}
+  finally{groupRefreshBusy=false;}
+}
+function renderGroups(){
+  const wrap=$("groupsList");if(!wrap)return;
+  if(!currentSession){wrap.innerHTML='<div class="empty-groups"><span>👥</span><strong>Sign in to use sprint groups.</strong><p>Your books and chapters remain private on this device. Group features require internet.</p></div>';return;}
+  const groups=state.remoteGroups||[];
+  if(!groups.length){wrap.innerHTML='<div class="empty-groups"><span>👥</span><strong>Your writing circle starts here.</strong><p>Create a group or join using a friend’s invitation code.</p></div>';return;}
+  wrap.innerHTML="";
+  groups.forEach(g=>{
+    const card=document.createElement("article");card.className="group-card";
+    const heading=document.createElement("div");heading.className="group-card-head";
+    const title=document.createElement("div");title.innerHTML='<p class="eyebrow">SPRINT GROUP</p><h3></h3><small>Shared progress only · no manuscripts</small>';title.querySelector("h3").textContent=g.name;
+    const code=document.createElement("span");code.className="group-code";code.textContent=g.code;heading.append(title,code);
+    const actions=document.createElement("div");actions.className="group-actions";
+    const share=document.createElement("button");share.className="primary-button";share.textContent="Share invite";share.onclick=async()=>{const invite=location.origin+location.pathname+"?join="+encodeURIComponent(g.code);try{if(navigator.share)await navigator.share({title:"Join "+g.name,text:"Join my Words Goal Tracker sprint group. Sign in or create an account, then join with this code: "+g.code,url:invite});else if(navigator.clipboard){await navigator.clipboard.writeText(invite);toast("Invitation link copied 💜");}else prompt("Copy invitation link",invite);}catch(e){}};
+    const progress=document.createElement("button");progress.className="secondary-button";progress.textContent="Refresh progress";progress.onclick=()=>loadGroupProgress(g.id,card);
+    const shareWords=document.createElement("button");shareWords.className="secondary-button";shareWords.textContent="Share today's words";shareWords.onclick=async()=>{try{await updateGroupWords(g.id);toast("Today's word count shared 💜");await loadGroupProgress(g.id,card);}catch(e){toast(e.message||"Could not share progress.");}};
+    actions.append(share,shareWords,progress);
+    const memberArea=document.createElement("div");memberArea.className="member-progress";memberArea.innerHTML='<p class="muted tiny">Tap “Refresh progress” to see members’ shared word counts.</p>';
+    card.append(heading,actions,memberArea);wrap.appendChild(card);
+  });
+}
+async function loadGroupProgress(groupId,card){
+  try{const client=await ensureSupabase();const {data,error}=await client.rpc("wgt_group_progress",{p_group_id:groupId});if(error)throw error;const area=card.querySelector(".member-progress");area.innerHTML="";if(!data?.length){area.textContent="No progress shared yet.";return;}data.forEach(m=>{const row=document.createElement("div");row.className="member-row";const name=document.createElement("span");name.textContent=m.display_name;const words=document.createElement("strong");words.textContent=fmt(m.shared_words)+" words today";row.append(name,words);area.appendChild(row);});}catch(e){toast(e.message||"Could not load member progress.");}
+}
+async function updateGroupWords(groupId){const client=await ensureSupabase();const todayWords=Number((state.dailyLog||{})[dateKey()]||0);const {error}=await client.rpc("wgt_update_progress",{p_group_id:groupId,p_words:todayWords});if(error)throw error;}
+async function syncMyProgress(showMessage=false){if(!currentSession||!navigator.onLine)return;const groups=state.remoteGroups||[];for(const g of groups){try{await updateGroupWords(g.id);}catch(e){if(showMessage)toast(e.message||"Progress sync failed.");}}}
+async function processInviteFromURL(){
+  const code=new URLSearchParams(location.search).get("join");if(!code||!currentSession)return;
+  try{const client=await ensureSupabase();const {data,error}=await client.rpc("wgt_join_group",{p_invite_code:code});if(error)throw error;history.replaceState({},"",location.pathname);$("joinCodeInput").value="";showPage("groups");await loadRemoteGroups();toast("You joined "+data.name+"! 💜");}
+  catch(e){setAuthStatus("Invitation could not be joined: "+(e.message||"please check the code."),true);showPage("groups");}
+}
+async function createRemoteGroup(){
+  const name=$("groupNameInput").value.trim();if(!name){toast("Give your group a name first.");return;}
+  try{if(!currentSession)throw new Error("Sign in first to create a shared group.");if(!navigator.onLine)throw new Error("Connect to the internet to create a group.");const client=await ensureSupabase();const {error}=await client.rpc("wgt_create_group",{p_name:name});if(error)throw error;$("groupNameInput").value="";await loadRemoteGroups();toast("Group created online 💜");}
+  catch(e){toast(e.message||"Could not create group.");}
+}
+async function joinRemoteGroup(){const code=$("joinCodeInput").value.trim();if(!code){toast("Enter an invitation code first.");return;}try{if(!currentSession)throw new Error("Sign in first to join a group.");if(!navigator.onLine)throw new Error("Connect to the internet to join a group.");const client=await ensureSupabase();const {data,error}=await client.rpc("wgt_join_group",{p_invite_code:code});if(error)throw error;$("joinCodeInput").value="";await loadRemoteGroups();toast("You joined "+data.name+"! 💜");}catch(e){toast(e.message||"Could not join group.");}}
+$("signUpBtn").onclick=async()=>{try{const email=$("authEmail").value.trim(),password=$("authPassword").value,displayName=$("authDisplayName").value.trim()||"Writer";if(!email||!password)throw new Error("Enter your email and password.");if(password.length<6)throw new Error("Use a password with at least 6 characters.");const client=await ensureSupabase();const {data,error}=await client.auth.signUp({email,password,options:{data:{display_name:displayName},emailRedirectTo:location.origin+location.pathname}});if(error)throw error;if(data.session){currentSession=data.session;updateAuthUI();await loadRemoteGroups();toast("Account created 💜");}else setAuthStatus("Account created. Check your email to confirm it, then sign in.");}catch(e){setAuthStatus(e.message||"Could not create account.",true);}};
+$("signInBtn").onclick=async()=>{try{const email=$("authEmail").value.trim(),password=$("authPassword").value;if(!email||!password)throw new Error("Enter your email and password.");const client=await ensureSupabase();const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;currentSession=data.session;updateAuthUI();await loadRemoteGroups();await processInviteFromURL();toast("Signed in 💜");}catch(e){setAuthStatus(e.message||"Could not sign in.",true);}};
+$("signOutBtn").onclick=async()=>{try{const client=await ensureSupabase();await client.auth.signOut();currentSession=null;state.remoteGroups=[];updateAuthUI();renderGroups();toast("Signed out.");}catch(e){setAuthStatus(e.message||"Could not sign out.",true);}};
+$("createGroupBtn").onclick=createRemoteGroup;
+$("joinGroupBtn").onclick=joinRemoteGroup;
+window.addEventListener("online",()=>{updateAuthUI();if(currentSession)loadRemoteGroups();});
+window.addEventListener("offline",updateAuthUI);
 $("themeToggle").onclick=()=>{state.theme=state.theme==="dark"?"light":"dark";writeState().then(applyTheme);};
 $("exportChapterBtn").onclick=()=>{saveCurrentEditor();const c=selectedChapter();if(c)download((c.title||"chapter").replace(/[^\w\- ]/g,"").replace(/\s+/g,"-")+".txt",c.content||"","text/plain;charset=utf-8");};
 $("exportBackupBtn").onclick=()=>{saveCurrentEditor();download("words-goal-tracker-backup-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify(state,null,2));toast("Backup exported. Keep it somewhere safe.");};
@@ -55,3 +140,4 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden)saveCurrent
 window.addEventListener("beforeunload",()=>{const c=selectedChapter();if(c){c.title=$("chapterTitle").value.trim()||"Untitled chapter";c.content=$("chapterEditor").value;writeState();}});
 async function init(){try{db=await openDB();const saved=await readState();if(saved)state={...state,...saved};selectedBookId=state.books[0]?.id||null;selectedChapterId=state.books[0]?.chapters?.[0]?.id||null;render();resetSprint();showPage("dashboard");if("serviceWorker"in navigator&&location.protocol!=="file:"){navigator.serviceWorker.register("./service-worker.js").catch(()=>{});}}catch(e){document.body.insertAdjacentHTML("afterbegin",'<div class="empty-note">This browser could not open local storage. Please use a recent version of Chrome.</div>');}}
 init();
+initGroupAuth();

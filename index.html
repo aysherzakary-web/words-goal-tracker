@@ -81,10 +81,20 @@
         <div class="panel-title-row"><div><p class="eyebrow">WRITE ALONGSIDE YOUR PEOPLE</p><h2>Sprint groups</h2></div><span class="sprint-badge">💜 No chapter sharing</span></div>
         <p class="muted group-intro">Create a group, invite writers with a link, and encourage one another by sharing word-count progress only. Members never see anyone else's chapters or manuscript text.</p>
         <div class="group-feature-grid"><article><span>🔗</span><strong>Invite by link</strong><p>Share a private invitation with your writing friends.</p></article><article><span>📊</span><strong>Progress only</strong><p>Members see each other's sprint word counts, not their writing.</p></article><article><span>🫶🏽</span><strong>No group timer</strong><p>Everyone writes at their own pace. Only solo sprints use a timer.</p></article></div>
+        <div class="group-auth-card">
+          <h3>Connect your account</h3>
+          <p class="muted tiny">Group features need internet and an account. Your books and chapters remain saved privately on this device.</p>
+          <div id="authStatus" class="auth-status" role="status">Checking connection…</div>
+          <label>Display name <input id="authDisplayName" maxlength="40" placeholder="Your writer name"></label>
+          <label>Email <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com"></label>
+          <label>Password <input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="At least 6 characters"></label>
+          <div class="auth-actions"><button id="signUpBtn" class="secondary-button">Create account</button><button id="signInBtn" class="primary-button">Sign in</button><button id="signOutBtn" class="secondary-button" hidden>Sign out</button></div>
+        </div>
         <div class="group-create-row"><label>New group name<input id="groupNameInput" maxlength="60" placeholder="e.g. Newbie Writers' Room"></label><button id="createGroupBtn" class="primary-button">＋ Create group</button></div>
-        <div id="groupsList" class="groups-list"><div class="empty-groups"><span>👥</span><strong>Your writing circle starts here.</strong><p>Create a group to prepare its invite and member progress space.</p></div></div>
-        <div class="group-privacy-note"><strong>🔐 Privacy promise</strong><p>Group members should only see a display name and the word-count progress each person chooses to share. Chapter titles, chapter contents, and manuscripts stay private on each writer's device.</p></div>
-        <div class="group-setup-note"><strong>One setup step remains</strong><p>This version lays out the group experience, but real invite links and live cross-device progress need an online database and member accounts. Until we connect that service, groups created here are saved on this device only; sharing a link will not yet sync members or their progress.</p></div>
+        <div class="join-group-row"><label>Have an invite code?<input id="joinCodeInput" maxlength="20" placeholder="Paste group code"></label><button id="joinGroupBtn" class="secondary-button">Join group</button></div>
+        <div id="groupsList" class="groups-list"><div class="empty-groups"><span>👥</span><strong>Your writing circle starts here.</strong><p>Sign in to create or join a shared group.</p></div></div>
+        <div class="group-privacy-note"><strong>🔐 Privacy promise</strong><p>Group members can see display names and shared word-count progress only. Chapter titles, chapter contents, and manuscripts are not uploaded by this group feature.</p></div>
+        <div class="group-setup-note"><strong>Offline note</strong><p>Writing and the solo timer work locally. Group creation, joining, and seeing other members' updates need an internet connection. Your daily word count can sync when you're back online.</p></div>
       </section>
 
       <section class="panel bottom-panel page-section" data-page="progress">
