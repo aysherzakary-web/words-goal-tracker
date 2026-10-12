@@ -2,12 +2,17 @@
   "name": "Words Goal Tracker",
   "short_name": "Words Tracker",
   "description": "An offline-friendly writing room and word goal tracker.",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f7f3ff",
   "theme_color": "#7650c8",
   "icons": [
-    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }

@@ -1,36 +1,34 @@
-WORDS GOAL TRACKER — STARTER VERSION
+WORDS GOAL TRACKER — V4 OFFLINE-FIRST FOUNDATION
 
-Included:
-- Create and edit books with word goals
-- Create chapters and write inside the editor
-- Live chapter word count
-- Total words across saved chapters and goal progress
-- Light and dark purple themes
-- Local browser database (IndexedDB)
-- Export a chapter as .txt
-- Export/import a JSON backup
-- PWA manifest and service worker for offline app shell caching
+Included files:
+- index.html
+- styles.css
+- app.js
+- manifest.json
+- service-worker.js
+- icon.svg
 
-IMPORTANT:
-1. This is a starter app, not yet published online.
-2. To install as an app and use service-worker offline caching, host it on HTTPS (for example, GitHub Pages). Open it online once, then install it from Chrome's menu.
-3. Drafts are stored locally in the browser on this device. Clearing site data, uninstalling/resetting the browser, or losing the device may delete drafts. Export backups regularly.
-4. Monthly progress currently totals the words in saved chapters; it does not yet distinguish words written during the current calendar month. Calendar, streaks, daily goals, cloud accounts, and syncing are future upgrades.
-5. The app does not send your writing to a server.
+V4 changes:
+- Improved service worker cache installation so one failed cache request does not cancel all caching.
+- Improved offline navigation fallback to the cached app page.
+- Cache-first loading for same-origin app files.
+- Updated cache version so browsers can detect the new offline shell.
+- Installed app start URL points to the app root.
 
+IMPORTANT OFFLINE SETUP:
+1. Publish these files to the existing GitHub Pages repository.
+2. Each friend must open the published app while they have internet, wait for it to finish loading, and visit the app screens once.
+3. Close the app and reopen it online once if possible, to allow the service worker to finish installing/updating.
+4. Then test offline by turning off both Wi-Fi and mobile data and opening the installed app.
+5. If the app was already installed, fully close it and open it again online to allow the new service worker to update. The update may not take effect until the next launch.
+6. Always export a backup before replacing files. The app stores books and chapters locally on each device.
 
-VERSION 2 ADDITIONS
-- Daily word goal setting and words-written-today counter (counts positive increases in the editor's word count).
-- Writing calendar and consecutive-day streak display.
-- Solo writing sprint timer with pause/resume/reset and approximate words-added result.
-- Shared live group sprints are not included yet; those need an online real-time service and accounts.
+LIMITATIONS THAT ARE NOT FIXED BY THIS OFFLINE SHELL:
+- This version still does not have a real online group backend. Group invitations and cross-device group progress will NOT work yet.
+- Offline support cannot be installed remotely onto a phone that has never loaded the app while online. A friend who is offline and has not previously cached the app must reconnect once to set it up.
+- This upgrade improves app-shell caching; it does not replace testing on multiple devices.
 
-To update your published GitHub Pages app, upload/replace the files from this version in the same repository and commit the changes. The service-worker cache name is bumped so the browser can fetch the new app shell. Existing local IndexedDB data is kept, but export a backup before updating as a precaution.
+GROUP SPRINT BACKEND PLAN:
+A secure backend must be configured before genuine groups work across phones. It should store group membership and opted-in progress only, and must never expose manuscript/chapter contents to other members. Offline progress synchronization needs a separate, carefully tested queue to avoid lost or duplicated updates.
 
-
-VERSION 3 LAYOUT UPDATE
-- Navigation separates Home, My Library, Progress, Solo Sprint, and Sprint Groups into different screens.
-- Group screen includes local group creation and invite-link preparation UI.
-- Important: actual invitations, member accounts, and live shared word-count progress are not active without an online backend. Group members should never receive manuscript/chapter contents; only opted-in progress data should be synced.
-- Group sprints intentionally have no shared timer. The timer is only for solo sprints.
-- Export a backup before replacing the published app files.
+Existing local writing is stored in IndexedDB under the same database name/schema. Export a backup first as a precaution.
