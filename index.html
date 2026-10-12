@@ -14,8 +14,16 @@
     <button id="themeToggle" class="icon-button" aria-label="Switch theme" title="Switch theme">☾</button>
   </header>
 
+  <nav class="app-nav" aria-label="Main navigation">
+    <button class="nav-tab active" data-page="dashboard">🏠 <span>Home</span></button>
+    <button class="nav-tab" data-page="library">📚 <span>My Library</span></button>
+    <button class="nav-tab" data-page="progress">📈 <span>Progress</span></button>
+    <button class="nav-tab" data-page="solo">⏱️ <span>Solo Sprint</span></button>
+    <button class="nav-tab" data-page="groups">👥 <span>Sprint Groups</span></button>
+  </nav>
+
   <main class="layout">
-    <aside class="sidebar">
+    <aside class="sidebar page-section" data-page="library">
       <div class="section-heading"><h2>My Library</h2><button id="addBookBtn" class="round-button" aria-label="Add a book">+</button></div>
       <p class="muted tiny">Your writing collection</p>
       <div id="bookList" class="book-list"></div>
@@ -23,37 +31,37 @@
     </aside>
 
     <section class="workspace">
-      <section class="welcome-card">
+      <section class="welcome-card page-section" data-page="dashboard">
         <div><p class="eyebrow">YOUR WRITING SPACE</p><h1 id="welcomeTitle">Every word counts.</h1><p id="welcomeSubtitle">Choose a book or create a new one to begin.</p></div>
         <div class="welcome-art" aria-hidden="true">✍️</div>
       </section>
 
-      <section class="stats-grid">
+      <section class="stats-grid page-section" data-page="dashboard">
         <article class="stat-card"><span class="stat-icon">📝</span><div><p>Total words</p><strong id="totalWords">0</strong></div></article>
         <article class="stat-card"><span class="stat-icon">🎯</span><div><p>Monthly goal</p><strong id="monthlyGoalLabel">10,000</strong></div></article>
         <article class="stat-card"><span class="stat-icon">📚</span><div><p>Books</p><strong id="bookCount">0</strong></div></article>
       </section>
 
-      <section class="stats-grid extra-stats">
+      <section class="stats-grid extra-stats page-section" data-page="progress">
         <article class="stat-card"><span class="stat-icon">🌱</span><div><p>Words today</p><strong id="todayWords">0</strong></div></article>
         <article class="stat-card"><span class="stat-icon">🔥</span><div><p>Writing streak</p><strong id="streakDays">0 days</strong></div></article>
         <article class="stat-card"><span class="stat-icon">⏱️</span><div><p>Today's goal</p><strong id="dailyGoalLabel">500</strong></div></article>
       </section>
 
-      <section class="panel sprint-panel">
+      <section class="panel sprint-panel page-section" data-page="solo">
         <div class="panel-title-row"><div><p class="eyebrow">FOCUS TOGETHER, EVEN SOLO</p><h2>Writing sprint</h2></div><span class="sprint-badge">✦ Focus time</span></div>
         <p class="muted sprint-description">Set a timer, write without distractions, and celebrate showing up.</p>
         <div class="sprint-controls"><label>Duration<select id="sprintDuration"><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="25" selected>25 minutes</option><option value="30">30 minutes</option><option value="60">60 minutes</option></select></label><div class="sprint-clock" id="sprintClock">25:00</div><div class="sprint-buttons"><button id="sprintStartBtn" class="primary-button">Start sprint</button><button id="sprintPauseBtn" class="secondary-button" disabled>Pause</button><button id="sprintResetBtn" class="secondary-button">Reset</button></div></div>
         <div id="sprintResult" class="sprint-result" aria-live="polite">Your sprint result will appear here when you finish.</div>
-        <p class="muted tiny">Solo sprints work offline. Shared live sprints for your writers' group will need an internet connection and a later community upgrade.</p>
+        <p class="muted tiny">This timer is for your personal writing sessions. Group rooms have no shared countdown.</p>
       </section>
 
-      <section class="panel calendar-panel">
+      <section class="panel calendar-panel page-section" data-page="progress">
         <div class="panel-title-row"><div><p class="eyebrow">YOUR CONSISTENCY</p><h2>Writing calendar</h2></div><div class="calendar-nav"><button id="prevMonthBtn" class="icon-button" aria-label="Previous month">‹</button><strong id="calendarMonthLabel">Month</strong><button id="nextMonthBtn" class="icon-button" aria-label="Next month">›</button></div></div>
         <div class="calendar-weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div id="calendarGrid" class="calendar-grid"></div><p class="muted tiny">Purple dots mark days when you recorded writing activity in this app.</p>
       </section>
 
-      <section class="panel" id="bookPanel">
+      <section class="panel page-section" id="bookPanel" data-page="library">
         <div class="panel-title-row"><div><p class="eyebrow">CURRENT PROJECT</p><h2 id="currentBookTitle">No book selected</h2></div><button id="editBookBtn" class="secondary-button" disabled>Edit book</button></div>
         <div class="goal-row"><div><span class="muted">Book word goal</span><strong id="bookGoalLabel">—</strong></div><div class="progress-track"><div id="bookProgressBar" class="progress-fill"></div></div><span id="bookProgressLabel" class="progress-label">0%</span></div>
         <div class="editor-layout">
@@ -69,7 +77,17 @@
         </div>
       </section>
 
-      <section class="panel bottom-panel">
+      <section class="panel page-section groups-page" data-page="groups">
+        <div class="panel-title-row"><div><p class="eyebrow">WRITE ALONGSIDE YOUR PEOPLE</p><h2>Sprint groups</h2></div><span class="sprint-badge">💜 No chapter sharing</span></div>
+        <p class="muted group-intro">Create a group, invite writers with a link, and encourage one another by sharing word-count progress only. Members never see anyone else's chapters or manuscript text.</p>
+        <div class="group-feature-grid"><article><span>🔗</span><strong>Invite by link</strong><p>Share a private invitation with your writing friends.</p></article><article><span>📊</span><strong>Progress only</strong><p>Members see each other's sprint word counts, not their writing.</p></article><article><span>🫶🏽</span><strong>No group timer</strong><p>Everyone writes at their own pace. Only solo sprints use a timer.</p></article></div>
+        <div class="group-create-row"><label>New group name<input id="groupNameInput" maxlength="60" placeholder="e.g. Newbie Writers' Room"></label><button id="createGroupBtn" class="primary-button">＋ Create group</button></div>
+        <div id="groupsList" class="groups-list"><div class="empty-groups"><span>👥</span><strong>Your writing circle starts here.</strong><p>Create a group to prepare its invite and member progress space.</p></div></div>
+        <div class="group-privacy-note"><strong>🔐 Privacy promise</strong><p>Group members should only see a display name and the word-count progress each person chooses to share. Chapter titles, chapter contents, and manuscripts stay private on each writer's device.</p></div>
+        <div class="group-setup-note"><strong>One setup step remains</strong><p>This version lays out the group experience, but real invite links and live cross-device progress need an online database and member accounts. Until we connect that service, groups created here are saved on this device only; sharing a link will not yet sync members or their progress.</p></div>
+      </section>
+
+      <section class="panel bottom-panel page-section" data-page="progress">
         <div class="panel-title-row"><div><p class="eyebrow">MONTHLY MOMENTUM</p><h2>Your progress</h2></div><div class="goal-settings"><label class="goal-input-label">Monthly goal <input id="monthlyGoalInput" type="number" min="1" value="10000"></label><label class="goal-input-label">Daily goal <input id="dailyGoalInput" type="number" min="1" value="500"></label></div></div>
         <div class="month-summary"><div><strong id="monthWords">0</strong><span>words written in your saved chapters</span></div><div class="progress-track"><div id="monthProgressBar" class="progress-fill"></div></div><span id="monthProgressLabel">0% of monthly goal</span></div>
         <div class="backup-actions"><button id="exportBackupBtn" class="primary-button">⬇ Export backup</button><label class="secondary-button import-button">⬆ Import backup<input id="importBackupInput" type="file" accept="application/json" hidden></label><span class="muted tiny">Backup files help protect your work.</span></div>
