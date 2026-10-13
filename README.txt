@@ -1,4 +1,4 @@
-WORDS GOAL TRACKER V5 — GROUP CONNECTION + OFFLINE-FIRST FOUNDATION
+WORDS GOAL TRACKER V6 — INVITATION FLOW FIX + OFFLINE FOUNDATION
 
 This version keeps the local writing library and solo timer, improves app-shell caching, and adds Supabase account sign-in, shared group creation/joining, invitation links, and shared daily word-count progress.
 
@@ -14,3 +14,6 @@ IMPORTANT SETUP
 
 FILES
 index.html, styles.css, app.js, service-worker.js, manifest.json, icon.svg
+
+
+V6 CHANGE: Invitation URLs now immediately open the Sprint Groups screen and prefill/save the code even before sign-in. The user must create an account or sign in, then the app can join using the saved code. This fixes the previous confusing home-screen landing flow; it does not replace the need for a working Supabase account and correct SQL setup.
