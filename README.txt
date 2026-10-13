@@ -16,4 +16,6 @@ FILES
 index.html, styles.css, app.js, service-worker.js, manifest.json, icon.svg
 
 
+V7 CHANGE: Uses the canonical GitHub Pages URL for invitation links and email-confirmation redirects; increments the service-worker cache version and falls back to cached index.html on failed navigation responses. Supabase Authentication URL Configuration must still use the same published URL.
+
 V6 CHANGE: Invitation URLs now immediately open the Sprint Groups screen and prefill/save the code even before sign-in. The user must create an account or sign in, then the app can join using the saved code. This fixes the previous confusing home-screen landing flow; it does not replace the need for a working Supabase account and correct SQL setup.
